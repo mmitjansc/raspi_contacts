@@ -1,0 +1,6 @@
+<launch>
+
+    <param name="pub_rate" type="int" value="20" />
+    <node name="$(anon detect_contacts)" pkg="raspi_contacts" type="detect_contact.py" output="screen"/>
+
+</launch>

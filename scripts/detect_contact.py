@@ -12,7 +12,8 @@ class FootContact:
         
         self.in_channel = input_channel
         self.foot_pub = rospy.Publisher(f"{foot}_foot",Bool,queue_size=1)
-        self.rate = rospy.Rate(20)
+        rate = rospy.get_param("pub_rate")
+        self.rate = rospy.Rate(rate)
     
     def run(self):
         # global in_channel
@@ -39,7 +40,7 @@ def main():
     # Set channel 12 as input
     GPIO.setup(in_channel, GPIO.IN)
 
-    foot_contact = FootContact(in_channel,foot='left')
+    foot_contact = FootContact(in_channel,foot='right')
     foot_contact.run()
 
 if __name__ == "__main__":
@@ -51,6 +52,10 @@ if __name__ == "__main__":
         print("Running node...")
         main()
 
+    except KeyboardInterrupt:
+        print("Shutting down ROS...")
+        rospy.signal_shutdown("Clean shutdown")
+
     finally:
         GPIO.cleanup()
-        print("\nGPIOs cleaned up. Exiting node.")
+        print("GPIOs cleaned up. Exiting node.")
