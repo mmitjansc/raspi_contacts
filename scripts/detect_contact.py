@@ -12,7 +12,7 @@ class FootContact:
         
         self.in_channel = input_channel
         self.foot_pub = rospy.Publisher(f"{foot}_foot",Bool,queue_size=1)
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(20)
     
     def run(self):
         # global in_channel
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     print("Initializing ROS...")
     rospy.init_node("foot_contact_node",anonymous=True)
-    print("ROS initialized.")
+    print("Running node...")
 
     try:
         main()
