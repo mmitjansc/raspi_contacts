@@ -44,13 +44,13 @@ def main():
 
 if __name__ == "__main__":
 
-    print("Initializing ROS...")
-    rospy.init_node("foot_contact_node",anonymous=True)
-    print("Running node...")
 
     try:
+        print("Initializing ROS...")
+        rospy.init_node("foot_contact_node",anonymous=True,disable_signals=True)
+        print("Running node...")
         main()
 
     finally:
         GPIO.cleanup()
-        print("GPIOs cleaned up. Exiting node.")
+        print("\nGPIOs cleaned up. Exiting node.")
