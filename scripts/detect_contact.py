@@ -57,17 +57,28 @@ class FootContact:
         heel_val = GPIO.input(self.heel_channel)
         toe_val = GPIO.input(self.toe_channel)
 
+        # print(heel_val,toe_val,self.current_contact)
+
         if not heel_val:
+            self.current_contact = 0
             # Heel on the ground
             print("HEEL ON GROUND")
             return 1
-        if not toe_val:
-            print("TOE-OFF")
-            # Toe-off
+        if (heel_val and toe_val) and self.current_contact == 0:
+            # Toe-off started!
+            print("Toe-off started!")
             return 2
-        else:
+        if not toe_val:
+            # Toe-off ending...
+            print("Toe-off ending...")
+            self.current_contact = 1
+            return 2
+        if toe_val and self.current_contact == 1:
             print("SWING PHASE")
             return 3
+
+        else:
+            print("WARN Something weird happened:",heel_val,toe_val,self.current_contact)
 
 
         # # print("Heel val:",heel_val)
@@ -118,7 +129,7 @@ def main():
     GPIO.setup(heel_channel, GPIO.IN)
     GPIO.setup(toe_channel, GPIO.IN)
 
-    foot_contact = FootContact(heel_channel,toe_channel,foot='left')
+    foot_contact = FootContact(heel_channel,toe_channel,foot='right')
     foot_contact.run()
 
 if __name__ == "__main__":
