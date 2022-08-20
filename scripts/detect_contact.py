@@ -8,10 +8,10 @@ from std_msgs.msg import Bool
 
 class FootContact:
 
-    def __init__(self,input_channel):
+    def __init__(self,input_channel,foot="right"):
         
         self.in_channel = input_channel
-        self.foot_pub = rospy.Publisher("right_foot",Bool,queue_size=1)
+        self.foot_pub = rospy.Publisher(f"{foot}_foot",Bool,queue_size=1)
         self.rate = rospy.Rate(10)
     
     def run(self):
@@ -20,7 +20,6 @@ class FootContact:
         while not rospy.is_shutdown():
 
             read_val = GPIO.input(self.in_channel)
-            print("Read:",read_val)
 
             contact_msg = Bool(int(read_val))
 
@@ -40,7 +39,7 @@ def main():
     # Set channel 12 as input
     GPIO.setup(in_channel, GPIO.IN)
 
-    foot_contact = FootContact(in_channel)
+    foot_contact = FootContact(in_channel,foot='left')
     foot_contact.run()
 
 if __name__ == "__main__":
