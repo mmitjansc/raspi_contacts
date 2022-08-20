@@ -4,7 +4,7 @@
 
 import rospy
 import RPi.GPIO as GPIO
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int16
 import os 
 
 # First, set the ROS_MASTER_URI to 192.168.1.162
@@ -12,21 +12,75 @@ os.environ["ROS_MASTER_URI"] = "http://192.168.1.162:11311"
 
 class FootContact:
 
-    def __init__(self,input_channel,foot="right"):
+    def __init__(self,heel_channel,toe_channel,foot="right"):
         
-        self.in_channel = input_channel
-        self.foot_pub = rospy.Publisher(f"{foot}_foot",Bool,queue_size=1)
+        self.heel_channel = heel_channel
+        self.toe_channel = toe_channel
+
+        self.foot_pub = rospy.Publisher(f"{foot}_foot",Int16,queue_size=1)
         rate = rospy.get_param("pub_rate",20)
         self.rate = rospy.Rate(rate)
+
+        # Store what type of contact we're having.
+        # 0: ground
+        # 1: air
+        self.current_contact = 0 # Let's assume we start with both feet on the ground
+
+        # GPIO callbacks
+        GPIO.add_event_detect(self.heel_channel,GPIO.FALLING,callback=self.heel_callback)
+        GPIO.add_event_detect(self.toe_channel,GPIO.RISING,callback=self.toe_callback)
+
+    def heel_callback(self):
+        '''Called when FALLING edge detected on heel channel'''
+        # Heel strike happened!
+        self.current_contact = 0
+
+    def toe_callback(self):
+        '''Called when RISING edge detected on heel channel'''
+        # Toe-off happened!
+        self.current_contact = 1
+
+    def parse_contact(self):
+        """Based on heel value and toe value (0/1), what type of contact am I having?
+        INPUTS:
+        - 0: Contact (closed switch)
+        - 1: No contact (open switch)
+        OUTPUTS:
+        - 0: whole foot contact
+        - 1: heel-strike
+        - 2: toe-off
+        - 3: swing phase
+        """
+
+        heel_val = GPIO.input(self.heel_channel)
+        toe_val = GPIO.input(self.toe_channel)
+
+        if not heel_val and toe_val:
+            # Heel-strike
+            return 1
+
+        if heel_val and not toe_val:
+            # Toe-off
+            return 2
+
+        # Now, the two remaining cases:
+        if self.current_contact == 1:
+            # Air
+            return 3
+        
+        if self.current_contact == 0:
+            # Ground
+            return 0
+
     
     def run(self):
         # global in_channel
 
         while not rospy.is_shutdown():
 
-            read_val = GPIO.input(self.in_channel)
+            contact_val = self.parse_contact()
 
-            contact_msg = Bool(int(read_val))
+            contact_msg = Int16(int(contact_val))
 
             self.foot_pub.publish(contact_msg)
             
@@ -35,16 +89,18 @@ class FootContact:
             
 def main():
 
-    # What is the input channel
-    in_channel = 12
+    # What are the input channels
+    heel_channel = 12
+    toe_channel = 16
 
     # Pin 12 is the signal input -- we need BOARD and not BCM (in BCM, it'd be 18)
     GPIO.setmode(GPIO.BOARD)
 
     # Set channel 12 as input
-    GPIO.setup(in_channel, GPIO.IN)
+    GPIO.setup(heel_channel, GPIO.IN)
+    GPIO.setup(toe_channel, GPIO.IN)
 
-    foot_contact = FootContact(in_channel,foot='right')
+    foot_contact = FootContact(heel_channel,toe_channel,foot='left')
     foot_contact.run()
 
 if __name__ == "__main__":

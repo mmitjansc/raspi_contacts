@@ -9,13 +9,13 @@ try:
 
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(led, GPIO.OUT)
-    # GPIO.setup(switch, GPIO.IN)
 
-    for i in range(10):
+    while True:
         GPIO.output(led, GPIO.HIGH)
-        time.sleep(0.2)
+        time.sleep(0.3)
         GPIO.output(led, GPIO.LOW)
-        time.sleep(0.2)
+        time.sleep(0.3)
 
 finally:
     GPIO.cleanup()
+    print("GPIOs cleaned up.")
