@@ -5,6 +5,10 @@
 import rospy
 import RPi.GPIO as GPIO
 from std_msgs.msg import Bool
+import os 
+
+# First, set the ROS_MASTER_URI to 192.168.1.162
+os.environ["ROS_MASTER_URI"] = "http://192.168.1.162:11311"
 
 class FootContact:
 
@@ -12,7 +16,7 @@ class FootContact:
         
         self.in_channel = input_channel
         self.foot_pub = rospy.Publisher(f"{foot}_foot",Bool,queue_size=1)
-        rate = rospy.get_param("pub_rate")
+        rate = rospy.get_param("pub_rate",20)
         self.rate = rospy.Rate(rate)
     
     def run(self):
