@@ -26,19 +26,21 @@ class FootContact:
         # 1: air
         self.current_contact = 0 # Let's assume we start with both feet on the ground
 
-        # GPIO callbacks
-        GPIO.add_event_detect(self.heel_channel,GPIO.FALLING,callback=self.heel_callback)
-        GPIO.add_event_detect(self.toe_channel,GPIO.RISING,callback=self.toe_callback)
+        # # GPIO callbacks
+        # GPIO.add_event_detect(self.heel_channel,GPIO.FALLING,callback=self.heel_callback)
+        # GPIO.add_event_detect(self.toe_channel,GPIO.RISING,callback=self.toe_callback)
 
-    def heel_callback(self):
+    def heel_callback(self,channel):
         '''Called when FALLING edge detected on heel channel'''
         # Heel strike happened!
         self.current_contact = 0
+        print("FOOT ON THE GROUND!")
 
-    def toe_callback(self):
+    def toe_callback(self,channel):
         '''Called when RISING edge detected on heel channel'''
         # Toe-off happened!
         self.current_contact = 1
+        print("FOOT ON THE AIR!")
 
     def parse_contact(self):
         """Based on heel value and toe value (0/1), what type of contact am I having?
@@ -46,31 +48,47 @@ class FootContact:
         - 0: Contact (closed switch)
         - 1: No contact (open switch)
         OUTPUTS:
-        - 0: whole foot contact
+        - 0: whole foot contact -- UNUSED
         - 1: heel-strike
         - 2: toe-off
-        - 3: swing phase
+        - 3: air
         """
 
         heel_val = GPIO.input(self.heel_channel)
         toe_val = GPIO.input(self.toe_channel)
 
-        if not heel_val and toe_val:
-            # Heel-strike
+        if not heel_val:
+            # Heel on the ground
+            print("HEEL ON GROUND")
             return 1
-
-        if heel_val and not toe_val:
+        if not toe_val:
+            print("TOE-OFF")
             # Toe-off
             return 2
-
-        # Now, the two remaining cases:
-        if self.current_contact == 1:
-            # Air
+        else:
+            print("SWING PHASE")
             return 3
+
+
+        # # print("Heel val:",heel_val)
+        # # print("Toe val:",toe_val)
+
+        # if not heel_val and toe_val:
+        #     # Heel-strike
+        #     return 1
+
+        # if heel_val and not toe_val:
+        #     # Toe-off
+        #     return 2
+
+        # # Now, the two remaining cases:
+        # if self.current_contact == 1:
+        #     # Air
+        #     return 3
         
-        if self.current_contact == 0:
-            # Ground
-            return 0
+        # if self.current_contact == 0:
+        #     # Ground
+        #     return 0
 
     
     def run(self):
